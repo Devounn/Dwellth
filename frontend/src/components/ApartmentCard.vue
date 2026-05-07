@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineEmits } from 'vue'
 import type { ApartmentResult } from '../api'
 const props = defineProps<{ apt: ApartmentResult }>()
 const emit = defineEmits<{ (e: 'select', apt: ApartmentResult): void }>()
@@ -18,11 +17,12 @@ const emit = defineEmits<{ (e: 'select', apt: ApartmentResult): void }>()
           </span>
         </div>
 
-        <h3 class="mt-3 display-font text-2xl font-semibold tracking-tight text-slate-950">
-          {{ apt.title }}
+        <h3 class="mt-3 display-font text-2xl font-bold tracking-tight text-slate-950">
+          {{ apt.title || apt.name || apt.apartment_name || apt.address || 'Apartment listing' }}
         </h3>
-        <p class="mt-1 text-sm text-slate-500">{{ apt.city || 'City unavailable' }}</p>
-        <p v-if="apt.description" class="mt-3 text-sm text-slate-600">{{ apt.description }}</p>
+        <p class="mt-1 text-sm text-slate-500">
+          {{ apt.address || apt.city || 'Location unavailable' }}
+        </p>
       </div>
 
       <div class="text-right">
@@ -46,8 +46,14 @@ const emit = defineEmits<{ (e: 'select', apt: ApartmentResult): void }>()
       </div>
     </dl>
 
-    <div v-if="apt.similarity !== undefined" class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-      <div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500" :style="{ width: `${Math.max(8, Math.min(100, (apt.similarity || 0) * 100))}%` }"></div>
+    <div v-if="apt.similarity !== undefined" class="mt-4">
+      <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+        <span>Match</span>
+        <span>{{ Math.round((apt.similarity || 0) * 100) }}%</span>
+      </div>
+      <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+        <div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500" :style="{ width: `${Math.max(8, Math.min(100, (apt.similarity || 0) * 100))}%` }"></div>
+      </div>
     </div>
   </article>
 </template>

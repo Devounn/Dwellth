@@ -11,6 +11,16 @@ import os
 
 app = FastAPI(title="Dwellth Recommender API")
 
+MODEL_FEATURE_COLS = [
+    "square_feet",
+    "bathrooms",
+    "bedrooms",
+    "amenities_count",
+    "pets_allowed_bin",
+    "latitude",
+    "longitude",
+]
+
 # Allow CORS from frontend during development. Adjust origins for production.
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +38,8 @@ class RecommendRequest(BaseModel):
     bathrooms: Optional[float] = None
     amenities_count: Optional[float] = None
     pets_allowed_bin: Optional[int] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 CLUSTER_MAP = {
@@ -116,14 +128,7 @@ def load_artifacts():
     app.state.scaled_features_db = scaled_features_db
 
     # compute medians for input features
-    feature_cols = [
-        "budget",
-        "square_feet",
-        "bedrooms",
-        "bathrooms",
-        "amenities_count",
-        "pets_allowed_bin",
-    ]
+    feature_cols = MODEL_FEATURE_COLS
     medians = {}
     for c in feature_cols:
         if c in recommender_db.columns:
@@ -155,12 +160,13 @@ def recommend(req: RecommendRequest):
     # Fill missing with medians
     med = app.state.medians
     features = [
-        req.budget if req.budget is not None else med["budget"],
         req.square_feet if req.square_feet is not None else med["square_feet"],
-        req.bedrooms if req.bedrooms is not None else med["bedrooms"],
         req.bathrooms if req.bathrooms is not None else med["bathrooms"],
+        req.bedrooms if req.bedrooms is not None else med["bedrooms"],
         req.amenities_count if req.amenities_count is not None else med["amenities_count"],
         int(req.pets_allowed_bin) if req.pets_allowed_bin is not None else int(med["pets_allowed_bin"]),
+        req.latitude if req.latitude is not None else med["latitude"],
+        req.longitude if req.longitude is not None else med["longitude"],
     ]
 
     pipeline = app.state.pipeline
@@ -169,26 +175,6 @@ def recommend(req: RecommendRequest):
     fallback_scaling = False
     scaled_user = None
     try:
-        # Some pipelines were trained with extra engineered features.
-        # Detect expected input dimension and pad the user feature vector if needed.
-        expected_n = getattr(pipeline, 'n_features_in_', None)
-        if expected_n is None:
-            # try to inspect first transformer
-            first = None
-            if hasattr(pipeline, 'named_steps'):
-                for _, est in getattr(pipeline, 'named_steps').items():
-                    first = est
-                    break
-            elif hasattr(pipeline, 'steps') and len(pipeline.steps) > 0:
-                first = pipeline.steps[0][1]
-            if first is not None:
-                expected_n = getattr(first, 'n_features_in_', None)
-
-        if expected_n is not None and expected_n > len(features):
-            pad_count = expected_n - len(features)
-            # pad with zeros (safe fallback). If you prefer, use medians or other heuristics.
-            features = features + [0.0] * pad_count
-
         scaled_user = pipeline.transform([features])
     except Exception as e:
         # If the saved preprocessing pipeline is incompatible with the current
@@ -202,13 +188,13 @@ def recommend(req: RecommendRequest):
     # If fallback scaling is active we cannot reliably predict the trained
     # cluster (different feature set). Skip cluster filtering and operate on
     # the full DB (budget filter still applied). Otherwise predict cluster.
+    pred_cluster = None
     if not fallback_scaling:
         try:
             pred_cluster = int(kmeans.predict(scaled_user)[0])
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Clustering error: {e}")
 
-        # Identify price column
     price_col = _get_col(df, ["price", "Price", "rent", "Rent"])
     if price_col is None:
         raise HTTPException(status_code=500, detail="Could not find price column in recommender_db")
@@ -249,17 +235,7 @@ def recommend(req: RecommendRequest):
     else:
         # Fallback scaling: compute z-score on the raw numeric features we know.
         # Use the columns we expect to exist in the recommender DB.
-        num_cols = [
-            c for c in [
-                "budget",
-                "square_feet",
-                "bedrooms",
-                "bathrooms",
-                "amenities_count",
-                "pets_allowed_bin",
-            ]
-            if c in app.state.recommender_db.columns
-        ]
+        num_cols = [c for c in MODEL_FEATURE_COLS if c in app.state.recommender_db.columns]
         if len(num_cols) == 0:
             raise HTTPException(status_code=500, detail=f"Scaling error: {fallback_error}")
 
@@ -280,18 +256,20 @@ def recommend(req: RecommendRequest):
         for c in num_cols:
             # map our feature names to the request values or medians
             val = None
-            if c == 'budget':
-                val = req.budget if req.budget is not None else med['budget']
-            elif c == 'square_feet':
+            if c == 'square_feet':
                 val = req.square_feet if req.square_feet is not None else med['square_feet']
-            elif c == 'bedrooms':
-                val = req.bedrooms if req.bedrooms is not None else med['bedrooms']
             elif c == 'bathrooms':
                 val = req.bathrooms if req.bathrooms is not None else med['bathrooms']
+            elif c == 'bedrooms':
+                val = req.bedrooms if req.bedrooms is not None else med['bedrooms']
             elif c == 'amenities_count':
                 val = req.amenities_count if req.amenities_count is not None else med['amenities_count']
             elif c == 'pets_allowed_bin':
                 val = int(req.pets_allowed_bin) if req.pets_allowed_bin is not None else int(med['pets_allowed_bin'])
+            elif c == 'latitude':
+                val = req.latitude if req.latitude is not None else med['latitude']
+            elif c == 'longitude':
+                val = req.longitude if req.longitude is not None else med['longitude']
             else:
                 val = med.get(c, 0.0)
             user_vals.append(val)
@@ -324,16 +302,18 @@ def recommend(req: RecommendRequest):
 
     # Identify common fields
     title_col = _get_col(combined, ["Title", "title", "name", "Name"]) or combined.columns[0]
-    description_col = _get_col(combined, ["Description", "description", "desc", "summary", "details"]) or None
-    city_col = _get_col(combined, ["City", "city"]) or None
+    description_col = _get_col(combined, ["body", "Description", "description", "desc", "summary", "details"]) or None
+    city_col = _get_col(combined, ["cityname", "City", "city"]) or None
     beds_col = _get_col(combined, ["beds", "Beds", "Bedrooms", "bedrooms"]) or None
     baths_col = _get_col(combined, ["baths", "Baths", "Bathrooms", "bathrooms"]) or None
     sqft_col = _get_col(combined, ["sq_ft", "sqft", "square_feet", "Square_Feet"]) or None
+    fair_price_col = _get_col(combined, ["Predicted_Fair_Price", "predicted_fair_price", "fair_price", "estimated_price"]) or None
     lat_col = _get_col(combined, ["latitude", "lat", "Latitude", "Lat"]) or None
     lon_col = _get_col(combined, ["longitude", "lon", "Longitude", "Lon"]) or None
 
     results: List[Dict[str, Any]] = []
     for idx, row in combined.iterrows():
+        estimated_price = float(row.get(fair_price_col, 0)) if fair_price_col is not None and pd.notna(row.get(fair_price_col)) else None
         item = {
             "id": str(idx),
             "title": row.get(title_col, ""),
@@ -343,6 +323,8 @@ def recommend(req: RecommendRequest):
             "beds": int(row.get(beds_col, 0)) if beds_col is not None and pd.notna(row.get(beds_col)) else None,
             "baths": float(row.get(baths_col, 0)) if baths_col is not None and pd.notna(row.get(baths_col)) else None,
             "sq_ft": float(row.get(sqft_col, 0)) if sqft_col is not None and pd.notna(row.get(sqft_col)) else None,
+            "predicted_fair_price": estimated_price,
+            "estimated_price": estimated_price,
             "lifestyle_tag": row.get(cluster_col, CLUSTER_MAP.get(pred_cluster) if not fallback_scaling else None),
             "is_high_value_deal": bool(row.get(hv_col, False)),
             "latitude": float(row.get(lat_col)) if lat_col is not None and pd.notna(row.get(lat_col)) else None,

@@ -1,0 +1,49 @@
+# Development directories
+/.agents
+node_modules/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Python cache and build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+*.dist-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ML artifacts (gitignore unless needed)
+*.joblib
+*.pkl
+*.joblib.bak
+
+# Environment and config
+.env
+.env.local
+.env.*.local
+frontend/.env
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs and temps
+*.log
+npm-debug.log*
+.temp/
+tmp/
