@@ -104,6 +104,9 @@ Dwell/
    ```
    Edit `frontend/.env` if your backend runs on a different address (default: `http://localhost:8000`)
 
+5. **Run the Jupyter Notebook:**
+   Run the Model-Final-Project.ipynb to get the necessary .pkl and .joblib files
+   
 ## Running Locally
 
 ### Start Backend (Terminal 1)

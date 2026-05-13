@@ -1,5 +1,5 @@
 # Development directories
-/.agents
+.agents/
 node_modules/
 dist/
 build/
@@ -47,3 +47,6 @@ Thumbs.db
 npm-debug.log*
 .temp/
 tmp/
+
+skills-lock.json
+master.md

@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { ApartmentResult } from '../api'
 const props = defineProps<{ apt: ApartmentResult }>()
 const emit = defineEmits<{ (e: 'select', apt: ApartmentResult): void }>()
+
+const similarityScore = computed(() => props.apt.similarity ?? 0)
+const similarityIsNegative = computed(() => similarityScore.value < 0)
+const similarityWidth = computed(() => Math.max(8, Math.min(100, Math.abs(similarityScore.value) * 100)))
 </script>
 
 <template>
@@ -49,10 +54,14 @@ const emit = defineEmits<{ (e: 'select', apt: ApartmentResult): void }>()
     <div v-if="apt.similarity !== undefined" class="mt-4">
       <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
         <span>Match</span>
-        <span>{{ Math.round((apt.similarity || 0) * 100) }}%</span>
+        <span>{{ Math.round(similarityScore * 100) }}%</span>
       </div>
       <div class="h-2 overflow-hidden rounded-full bg-slate-100">
-        <div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500" :style="{ width: `${Math.max(8, Math.min(100, (apt.similarity || 0) * 100))}%` }"></div>
+        <div
+          class="h-full rounded-full"
+          :class="similarityIsNegative ? 'bg-gradient-to-r from-rose-400 to-red-600' : 'bg-gradient-to-r from-sky-400 to-indigo-500'"
+          :style="{ width: `${similarityWidth}%` }"
+        ></div>
       </div>
     </div>
   </article>
