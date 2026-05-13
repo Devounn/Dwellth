@@ -1,6 +1,9 @@
-# Dwell
+# Dwellth
 
-An intelligent apartment recommendation engine powered by machine learning. Dwell analyzes your preferences and budget to find apartments that match your lifestyle, with an interactive map to explore properties and compare estimated vs. actual prices.
+An intelligent apartment recommendation engine powered by machine learning. Dwellth analyzes your preferences and budget to find apartments that match your lifestyle, with an interactive map to explore properties and compare estimated vs. actual prices.
+
+<img width="1351" height="805" alt="Screenshot 2026-05-07 103206" src="https://github.com/user-attachments/assets/904e679f-1b0a-4add-9e60-f32216e46d4c" />
+<img width="1895" height="829" alt="image" src="https://github.com/user-attachments/assets/2e35176d-d370-4393-9bc2-006c36137de6" />
 
 ## Features
 
@@ -34,7 +37,7 @@ An intelligent apartment recommendation engine powered by machine learning. Dwel
 ## Project Structure
 
 ```
-Dwell/
+Dwellth/
 ├── frontend/                    # Vue 3 web application
 │   ├── src/
 │   │   ├── App.vue             # Main shell component
@@ -78,7 +81,7 @@ Dwell/
 
 1. **Clone and navigate:**
    ```bash
-   cd c:\projects\Dwell
+   cd c:\projects\Dwellth
    ```
 
 2. **Install Python dependencies:**
@@ -264,3 +267,4 @@ See [LICENSE](LICENSE) file for details.
 ---
 
 **Built with ❤️ as a Machine Learning Lecture Final Project**
+Final Score : 
