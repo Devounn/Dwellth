@@ -6,7 +6,8 @@ const emit = defineEmits<{ (e: 'select', apt: ApartmentResult): void }>()
 
 const similarityScore = computed(() => props.apt.similarity ?? 0)
 const similarityIsNegative = computed(() => similarityScore.value < 0)
-const similarityWidth = computed(() => Math.max(8, Math.min(100, Math.abs(similarityScore.value) * 100)))
+const similarityWidth = computed(() => Math.min(100, Math.max(0, Math.abs(similarityScore.value) * 100)))
+const similarityHasValue = computed(() => similarityWidth.value > 0)
 </script>
 
 <template>
@@ -58,6 +59,7 @@ const similarityWidth = computed(() => Math.max(8, Math.min(100, Math.abs(simila
       </div>
       <div class="h-2 overflow-hidden rounded-full bg-slate-100">
         <div
+          v-if="similarityHasValue"
           class="h-full rounded-full"
           :class="similarityIsNegative ? 'bg-gradient-to-r from-rose-400 to-red-600' : 'bg-gradient-to-r from-sky-400 to-indigo-500'"
           :style="{ width: `${similarityWidth}%` }"

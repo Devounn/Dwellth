@@ -56,7 +56,7 @@ async function onSearch(payload: RecommendRequest) {
       <div :class="[ 'soft-panel mx-auto flex max-w-7xl items-center justify-between rounded-full py-4', isCompact ? 'compact-header pl-4 pr-4' : 'pl-8 pr-6 sm:pl-10 lg:pl-12' ]">
         <div class="flex items-center gap-3">
           <p class="text-[0.85rem] uppercase tracking-[0.5em] text-slate-500">Dwellth</p>
-          <p v-if="!isCompact" class="mt-1 display-font text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Currated apartment recommendations</p>
+          <p v-if="!isCompact" class="mt-1 display-font text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Curated apartment recommendations</p>
         </div>
 
         <div class="flex items-center gap-3">
@@ -71,35 +71,16 @@ async function onSearch(payload: RecommendRequest) {
       <section class="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
         <div v-reveal="0" class="soft-panel relative overflow-hidden rounded-[2.25rem] p-6 sm:p-8 lg:p-10">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(132,207,255,0.22),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(242,184,75,0.18),transparent_28%)]"></div>
-          <div class="relative flex h-full flex-col justify-between gap-8">
+          <div class="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-sky-300/70 via-amber-200/60 to-transparent"></div>
+          <div class="relative flex h-full min-h-[420px] items-center">
             <div class="max-w-2xl">
-              <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
-                <span class="h-2 w-2 rounded-full bg-sky-500"></span>
-                About Us
-              </div>
-
-              <h2 class="mt-5 max-w-xl display-font text-5xl font-semibold leading-[0.95] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
+              <h2 class="max-w-xl display-font text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
                 Apartments that feel curated, not scraped.
               </h2>
 
               <p class="mt-5 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
                 Search by budget, size, and lifestyle signals. The recommender blends clustering, similarity, and value scoring, then returns the sharpest options first.
               </p>
-            </div>
-
-            <div class="grid gap-3 sm:grid-cols-3">
-              <div class="rounded-[1.4rem] border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
-                <div class="text-3xl font-semibold text-slate-950">{{ totalResults }}</div>
-                <div class="mt-1 text-sm text-slate-500">Results visible</div>
-              </div>
-              <div class="rounded-[1.4rem] border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
-                <div class="text-3xl font-semibold text-slate-950">25</div>
-                <div class="mt-1 text-sm text-slate-500">Max returned</div>
-              </div>
-              <div class="rounded-[1.4rem] border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
-                <div class="text-3xl font-semibold text-slate-950">2</div>
-                <div class="mt-1 text-sm text-slate-500">Value pools ranked</div>
-              </div>
             </div>
           </div>
         </div>
