@@ -156,6 +156,7 @@ def _get_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
 
 
 @app.post("/recommend")
+@app.post("/api/recommend")
 def recommend(req: RecommendRequest):
     # Fill missing with medians
     med = app.state.medians
