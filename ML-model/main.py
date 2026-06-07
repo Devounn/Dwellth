@@ -175,7 +175,8 @@ def recommend(req: RecommendRequest):
     fallback_scaling = False
     scaled_user = None
     try:
-        scaled_user = pipeline.transform([features])
+        features_df = pd.DataFrame([features], columns=MODEL_FEATURE_COLS)
+        scaled_user = pipeline.transform(features_df)
     except Exception as e:
         # If the saved preprocessing pipeline is incompatible with the current
         # sklearn version or expects engineered features, fall back to a simple
@@ -189,9 +190,14 @@ def recommend(req: RecommendRequest):
     # cluster (different feature set). Skip cluster filtering and operate on
     # the full DB (budget filter still applied). Otherwise predict cluster.
     pred_cluster = None
+    closest_two_clusters = None
     if not fallback_scaling:
         try:
-            pred_cluster = int(kmeans.predict(scaled_user)[0])
+            # Transform user to get distances to all centroids
+            distances = kmeans.transform(scaled_user)[0]
+            # Find the indices of the closest two clusters
+            closest_two_clusters = [int(x) for x in distances.argsort()[:2]]
+            pred_cluster = closest_two_clusters[0]
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Clustering error: {e}")
 
@@ -207,7 +213,7 @@ def recommend(req: RecommendRequest):
         raise HTTPException(status_code=500, detail="Could not find cluster column in recommender_db")
 
     if not fallback_scaling:
-        filtered = df[df[cluster_col] == pred_cluster]
+        filtered = df[df[cluster_col].isin(closest_two_clusters)]
     else:
         filtered = df
 
