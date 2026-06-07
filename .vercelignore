@@ -1,0 +1,11 @@
+# Ignore heavy training models to stay below Vercel's 250MB size limit
+ML-model/stacking_regressor.joblib
+ML-model/Model-Final-Project.ipynb
+ML-model/Model_Final_Project (5).ipynb
+ML-model/tools/
+node_modules/
+dist/
+.git/
+.vscode/
+.agents/
+.gemini/

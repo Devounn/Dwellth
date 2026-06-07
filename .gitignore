@@ -19,9 +19,8 @@ __pycache__/
 .coverage
 htmlcov/
 
-# ML artifacts (gitignore unless needed)
-*.joblib
-*.pkl
+# ML artifacts (keep stacking_regressor ignored due to size limits)
+ML-model/stacking_regressor.joblib
 *.joblib.bak
 
 # Environment and config
