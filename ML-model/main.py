@@ -310,10 +310,10 @@ def recommend(req: RecommendRequest):
         filtered["Is_High_Value_Deal"] = False
         hv_col = "Is_High_Value_Deal"
 
-    pool_a = filtered[filtered[hv_col] == True].nlargest(5, "_similarity")
-    pool_b = filtered[filtered[hv_col] == False].nlargest(20, "_similarity")
+    pool_a = filtered[filtered[hv_col] == True].sort_values(by="_similarity", ascending=False)
+    pool_b = filtered[filtered[hv_col] == False].sort_values(by="_similarity", ascending=False)
 
-    combined = pd.concat([pool_a, pool_b]).head(25)
+    combined = pd.concat([pool_a, pool_b])
 
     # map cluster numbers to strings for returned results
     if cluster_col in combined.columns:
