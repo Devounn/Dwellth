@@ -40,6 +40,7 @@ class RecommendRequest(BaseModel):
     pets_allowed_bin: Optional[int] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    similarity_threshold: Optional[float] = None
 
 
 CLUSTER_MAP = {
@@ -218,8 +219,8 @@ def recommend(req: RecommendRequest):
     else:
         filtered = df
 
-    # filter by budget
-    budget_val = features[0]
+    # filter by budget (fixing bug: use req.budget instead of square_feet in features[0])
+    budget_val = req.budget if req.budget is not None else float('inf')
     filtered = filtered[filtered[price_col] <= budget_val]
 
     if filtered.shape[0] == 0:
@@ -290,6 +291,17 @@ def recommend(req: RecommendRequest):
     sims_series = pd.Series(sims, index=filtered.index)
     filtered = filtered.copy()
     filtered["_similarity"] = sims_series
+
+    # Apply dynamic thresholding to prevent empty results while filtering poor matches
+    if len(sims_series) > 0:
+        max_sim = float(sims_series.max())
+        if req.similarity_threshold is not None:
+            threshold_val = req.similarity_threshold
+        else:
+            # Dynamic heuristic: 0.70 default. If best match is below 0.70, relax to max_sim - 0.05.
+            # Never go below 0.55 to avoid completely irrelevant recommendations.
+            threshold_val = 0.70 if max_sim >= 0.70 else max(0.55, max_sim - 0.05)
+        filtered = filtered[filtered["_similarity"] >= threshold_val]
 
     # high value deals
     hv_col = _get_col(filtered, ["Is_High_Value_Deal", "is_high_value_deal", "High_Value_Deal"])
