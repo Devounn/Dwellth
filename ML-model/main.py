@@ -87,8 +87,11 @@ def load_artifacts():
 
     # Dataframes
     db_candidates = [
+        os.path.join(base, "recommender_db.pkl.gz"),
         os.path.join(base, "recommender_db.pkl"),
+        os.path.join(base, "../api_artifacts/recommender_db.pkl.gz"),
         os.path.join(base, "../api_artifacts/recommender_db.pkl"),
+        os.path.join(base, "../recommender_db.pkl.gz"),
         os.path.join(base, "../recommender_db.pkl"),
     ]
     recommender_db = None
@@ -98,7 +101,9 @@ def load_artifacts():
             break
 
     scaled_candidates = [
+        os.path.join(base, "scaled_features_db.pkl.gz"),
         os.path.join(base, "scaled_features_db.pkl"),
+        os.path.join(base, "../api_artifacts/scaled_features_db.pkl.gz"),
         os.path.join(base, "../api_artifacts/scaled_features_db.pkl"),
     ]
     scaled_features_db = None
