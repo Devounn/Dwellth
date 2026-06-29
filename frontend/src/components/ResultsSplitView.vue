@@ -115,7 +115,7 @@ function prevPage() {
           </div>
         </div>
 
-        <ApartmentCard v-for="(apt, index) in paginatedApartments" :key="apt.id" :apt="apt" :style="{ '--reveal-delay': `${index * 70}ms` }" @select="handleSelect" />
+        <ApartmentCard v-for="(apt, index) in paginatedApartments" :key="apt.id" :apt="apt" :style="{ '--reveal-delay': `${index * 25}ms` }" @select="handleSelect" />
       </div>
 
       <!-- Pagination Footer Controls -->
