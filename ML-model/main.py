@@ -358,12 +358,8 @@ def recommend(req: RecommendRequest):
         filtered["Is_High_Value_Deal"] = False
         hv_col = "Is_High_Value_Deal"
 
-    # Separate Hot Deals and Regular recommendations, sorted by similarity
-    pool_a = filtered[filtered[hv_col] == True].sort_values(by="_similarity", ascending=False)
-    pool_b = filtered[filtered[hv_col] == False].sort_values(by="_similarity", ascending=False)
-
-    # Combined listing keeps Hot Deals at the front, followed by Regular matches
-    combined_all = pd.concat([pool_a, pool_b])
+    # Sort all matches by cosine similarity descending
+    combined_all = filtered.sort_values(by="_similarity", ascending=False)
 
     # Paginate results (defaults to page=1, page_size=250 to prevent browser overload)
     page_num = req.page if req.page is not None else 1

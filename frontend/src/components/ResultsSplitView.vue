@@ -20,6 +20,7 @@ function handleSelect(apt: ApartmentResult) {
 const currentPage = ref(1)
 const pageSize = ref(10)
 const dealsOnly = ref(false)
+const listContainer = ref<HTMLElement | null>(null)
 
 // Reset page index on payload or filter changes
 watch(() => props.apartments, () => {
@@ -27,6 +28,13 @@ watch(() => props.apartments, () => {
 })
 watch(dealsOnly, () => {
   currentPage.value = 1
+})
+
+// Scroll list container back to top on page change
+watch(currentPage, () => {
+  if (listContainer.value) {
+    listContainer.value.scrollTop = 0
+  }
 })
 
 // Filter results client-side
@@ -107,7 +115,7 @@ function prevPage() {
         </div>
       </div>
 
-      <div class="h-[640px] space-y-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+      <div ref="listContainer" class="h-[640px] space-y-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
         <div v-if="!filteredApartments.length" class="flex h-full items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,250,252,0.82))] p-8 text-center text-slate-500">
           <div>
             <p class="display-font text-2xl font-semibold text-slate-800">No matches found</p>
