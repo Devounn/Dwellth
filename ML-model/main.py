@@ -328,22 +328,22 @@ def recommend(req: RecommendRequest):
     filtered = filtered.copy()
     filtered["_similarity"] = sims_series
 
-    # Apply dynamic density thresholding (supervisor rule + high-density check)
+    # Apply dynamic density thresholding (supervisor rule + cascading quality check)
     if len(sims_series) > 0:
         max_sim = float(sims_series.max())
         if req.similarity_threshold is not None:
             threshold_val = req.similarity_threshold
         else:
-            # Count matches at different threshold tiers to check density
-            count_elite = len(sims_series[sims_series >= 0.85])
-            count_high = len(sims_series[sims_series >= 0.80])
-            count_medium = len(sims_series[sims_series >= 0.70])
-            
-            if count_elite >= 10:
+            # Cascading check: start at 0.95 and relax if pool size is too small (< 5 matches)
+            if len(sims_series[sims_series >= 0.95]) >= 5:
+                threshold_val = 0.95
+            elif len(sims_series[sims_series >= 0.90]) >= 5:
+                threshold_val = 0.90
+            elif len(sims_series[sims_series >= 0.85]) >= 5:
                 threshold_val = 0.85
-            elif count_high >= 10:
+            elif len(sims_series[sims_series >= 0.80]) >= 5:
                 threshold_val = 0.80
-            elif count_medium >= 5:
+            elif len(sims_series[sims_series >= 0.70]) >= 5:
                 threshold_val = 0.70
             else:
                 # Low density: relax to ensure matches, floor at 0.55
