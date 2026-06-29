@@ -156,8 +156,23 @@ def _get_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
     return None
 
 
+@app.get("/recommend")
+@app.get("/recommend/")
+@app.get("/api/recommend")
+@app.get("/api/recommend/")
+@app.get("/api//recommend")
+def recommend_get():
+    return {
+        "status": "online",
+        "message": "Dwellth Recommender API is active. Please use the POST method to submit search preferences."
+    }
+
+
 @app.post("/recommend")
+@app.post("/recommend/")
 @app.post("/api/recommend")
+@app.post("/api/recommend/")
+@app.post("/api//recommend")
 def recommend(req: RecommendRequest):
     # Fill missing with medians
     med = app.state.medians
