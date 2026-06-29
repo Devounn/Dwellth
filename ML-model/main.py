@@ -386,4 +386,17 @@ def recommend(req: RecommendRequest):
         }
         results.append(item)
 
-    return results
+    # Clean any NaN/Inf values from the results to ensure JSON compliance
+    cleaned_results = []
+    for item in results:
+        cleaned_item = {}
+        for k, v in item.items():
+            if isinstance(v, (float, np.floating)) and (np.isnan(v) or np.isinf(v)):
+                cleaned_item[k] = None
+            elif isinstance(v, str) and (v == "nan" or v == "NaN"):
+                cleaned_item[k] = ""
+            else:
+                cleaned_item[k] = v
+        cleaned_results.append(cleaned_item)
+
+    return cleaned_results
