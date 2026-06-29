@@ -5,6 +5,9 @@ export type RecommendRequest = {
   bathrooms?: number
   amenities_count?: number
   pets_allowed_bin?: number
+  similarity_threshold?: number
+  page?: number
+  page_size?: number
 }
 
 export type ApartmentResult = {

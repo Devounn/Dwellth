@@ -365,9 +365,9 @@ def recommend(req: RecommendRequest):
     # Combined listing keeps Hot Deals at the front, followed by Regular matches
     combined_all = pd.concat([pool_a, pool_b])
 
-    # Paginate results (defaults to page=1, page_size=30 to prevent browser overload)
+    # Paginate results (defaults to page=1, page_size=250 to prevent browser overload)
     page_num = req.page if req.page is not None else 1
-    size_num = req.page_size if req.page_size is not None else 30
+    size_num = req.page_size if req.page_size is not None else 250
     
     start_idx = (page_num - 1) * size_num
     end_idx = page_num * size_num
