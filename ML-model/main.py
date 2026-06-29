@@ -55,6 +55,8 @@ class RecommendRequest(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     similarity_threshold: Optional[float] = None
+    page: Optional[int] = None
+    page_size: Optional[int] = None
 
 
 CLUSTER_MAP = {
@@ -326,15 +328,27 @@ def recommend(req: RecommendRequest):
     filtered = filtered.copy()
     filtered["_similarity"] = sims_series
 
-    # Apply dynamic thresholding to prevent empty results while filtering poor matches
+    # Apply dynamic density thresholding (supervisor rule + high-density check)
     if len(sims_series) > 0:
         max_sim = float(sims_series.max())
         if req.similarity_threshold is not None:
             threshold_val = req.similarity_threshold
         else:
-            # Dynamic heuristic: 0.70 default. If best match is below 0.70, relax to max_sim - 0.05.
-            # Never go below 0.55 to avoid completely irrelevant recommendations.
-            threshold_val = 0.70 if max_sim >= 0.70 else max(0.55, max_sim - 0.05)
+            # Count matches at different threshold tiers to check density
+            count_elite = len(sims_series[sims_series >= 0.85])
+            count_high = len(sims_series[sims_series >= 0.80])
+            count_medium = len(sims_series[sims_series >= 0.70])
+            
+            if count_elite >= 10:
+                threshold_val = 0.85
+            elif count_high >= 10:
+                threshold_val = 0.80
+            elif count_medium >= 5:
+                threshold_val = 0.70
+            else:
+                # Low density: relax to ensure matches, floor at 0.55
+                threshold_val = max(0.55, max_sim - 0.05)
+                
         filtered = filtered[filtered["_similarity"] >= threshold_val]
 
     # high value deals
@@ -344,10 +358,20 @@ def recommend(req: RecommendRequest):
         filtered["Is_High_Value_Deal"] = False
         hv_col = "Is_High_Value_Deal"
 
+    # Separate Hot Deals and Regular recommendations, sorted by similarity
     pool_a = filtered[filtered[hv_col] == True].sort_values(by="_similarity", ascending=False)
     pool_b = filtered[filtered[hv_col] == False].sort_values(by="_similarity", ascending=False)
 
-    combined = pd.concat([pool_a, pool_b])
+    # Combined listing keeps Hot Deals at the front, followed by Regular matches
+    combined_all = pd.concat([pool_a, pool_b])
+
+    # Paginate results (defaults to page=1, page_size=30 to prevent browser overload)
+    page_num = req.page if req.page is not None else 1
+    size_num = req.page_size if req.page_size is not None else 30
+    
+    start_idx = (page_num - 1) * size_num
+    end_idx = page_num * size_num
+    combined = combined_all.iloc[start_idx:end_idx]
 
     # map cluster numbers to strings for returned results
     if cluster_col in combined.columns:
