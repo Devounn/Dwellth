@@ -11,6 +11,20 @@ import os
 
 app = FastAPI(title="Dwellth Recommender API")
 
+
+from fastapi.responses import JSONResponse
+import traceback
+
+@app.exception_handler(Exception)
+def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": str(exc),
+            "traceback": traceback.format_exc()
+        }
+    )
+
 MODEL_FEATURE_COLS = [
     "square_feet",
     "bathrooms",
